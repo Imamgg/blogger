@@ -17,8 +17,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Resume Materi — Blog Magang",
   description:
-    "Blog untuk merangkum dan mendokumentasikan materi yang dipelajari selama magang. Berisi catatan HTML, CSS, JavaScript, React, dan teknologi web lainnya.",
-  keywords: ["blog", "resume materi", "magang", "internship", "web development", "belajar"],
+    "Blog untuk merangkum dan mendokumentasikan materi yang dipelajari selama magang. Berisi catatan Networking, Web Development, dan berbagai topik terkait lainnya.",
+  keywords: [
+    "blog",
+    "resume materi",
+    "magang",
+    "internship",
+    "web development",
+    "belajar",
+  ],
 };
 
 export default function RootLayout({
