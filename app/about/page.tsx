@@ -12,7 +12,8 @@ export default function AboutPage() {
             <section className="animate-fade-in-up mb-12 text-center">
                 {/* Avatar */}
                 <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-light shadow-xl shadow-accent/25">
-                    <span className="text-3xl font-bold text-white">👨‍💻</span>
+                    {/* <span className="text-3xl font-bold text-white">👨‍💻</span> */}
+                    <img src="./images/profile.jpg" alt="Profil" className="rounded-full object-cover" />
                 </div>
 
                 <h1 className="mb-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Block types
-export type BlockType = "heading" | "paragraph" | "code" | "list" | "image";
+export type BlockType = "heading" | "paragraph" | "code" | "list" | "image" | "html";
 
 export interface ContentBlock {
     id: string;
@@ -51,6 +51,9 @@ export function blocksToHtml(blocks: ContentBlock[]): string {
                     const url = (block.data.url as string) || "";
                     const alt = (block.data.alt as string) || "";
                     return `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" />`;
+                }
+                case "html": {
+                    return (block.data.html as string) || "";
                 }
                 default:
                     return "";
@@ -110,12 +113,12 @@ export function htmlToBlocks(html: string): ContentBlock[] {
         }
     }
 
-    // If no blocks were parsed, treat the whole thing as a paragraph
+    // If no blocks were parsed, treat the whole thing as an html block
     if (blocks.length === 0 && html.trim()) {
         blocks.push({
             id: uid(),
-            type: "paragraph",
-            data: { text: stripHtml(html) },
+            type: "html",
+            data: { html: html },
         });
     }
 
@@ -153,6 +156,7 @@ const BLOCK_TYPES: {
         { type: "paragraph", label: "Paragraf", description: "Teks penjelasan", icon: "¶" },
         { type: "code", label: "Kode", description: "Contoh kode program", icon: "</>" },
         { type: "list", label: "Daftar", description: "Daftar poin-poin", icon: "•" },
+        { type: "html", label: "HTML", description: "Kode HTML langsung", icon: "<>" },
     ];
 
 interface BlockEditorProps {
@@ -207,8 +211,8 @@ export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
                     }}
                     onDragEnd={() => setDragIndex(null)}
                     className={`group rounded-xl border transition-all ${dragIndex === index
-                            ? "border-accent/50 bg-accent/5 opacity-50"
-                            : "border-card-border/30 bg-card-bg/30 hover:border-card-border/60"
+                        ? "border-accent/50 bg-accent/5 opacity-50"
+                        : "border-card-border/30 bg-card-bg/30 hover:border-card-border/60"
                         }`}
                 >
                     {/* Block Header */}
@@ -331,6 +335,8 @@ function BlockInput({
             return <CodeInput data={block.data} onChange={onChange} />;
         case "list":
             return <ListInput data={block.data} onChange={onChange} />;
+        case "html":
+            return <HtmlInput data={block.data} onChange={onChange} />;
         default:
             return null;
     }
@@ -442,8 +448,8 @@ function ListInput({
                     type="button"
                     onClick={() => onChange({ ...data, listType: "ul" })}
                     className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${listType === "ul"
-                            ? "bg-accent/20 text-accent-light"
-                            : "text-muted hover:text-foreground"
+                        ? "bg-accent/20 text-accent-light"
+                        : "text-muted hover:text-foreground"
                         }`}
                 >
                     • Bullet
@@ -452,8 +458,8 @@ function ListInput({
                     type="button"
                     onClick={() => onChange({ ...data, listType: "ol" })}
                     className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${listType === "ol"
-                            ? "bg-accent/20 text-accent-light"
-                            : "text-muted hover:text-foreground"
+                        ? "bg-accent/20 text-accent-light"
+                        : "text-muted hover:text-foreground"
                         }`}
                 >
                     1. Nomor
@@ -506,6 +512,54 @@ function ListInput({
     );
 }
 
+function HtmlInput({
+    data,
+    onChange,
+}: {
+    data: Record<string, string | string[]>;
+    onChange: (data: Record<string, string | string[]>) => void;
+}) {
+    const [showPreview, setShowPreview] = useState(false);
+    const htmlContent = (data.html as string) || "";
+
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <p className="text-[10px] text-muted/60">
+                    Tulis kode HTML langsung. Tag HTML akan di-render apa adanya.
+                </p>
+                <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="rounded-md border border-card-border/30 px-2 py-0.5 text-[10px] font-medium text-muted transition-colors hover:text-foreground"
+                >
+                    {showPreview ? "Editor" : "Preview"}
+                </button>
+            </div>
+            {showPreview ? (
+                <div className="min-h-[100px] rounded-lg border border-card-border/30 bg-background p-3">
+                    {htmlContent ? (
+                        <div
+                            className="prose"
+                            dangerouslySetInnerHTML={{ __html: htmlContent }}
+                        />
+                    ) : (
+                        <p className="text-center text-xs text-muted/50">Belum ada konten HTML</p>
+                    )}
+                </div>
+            ) : (
+                <textarea
+                    value={htmlContent}
+                    onChange={(e) => onChange({ ...data, html: e.target.value })}
+                    placeholder={'<h2>Judul</h2>\n<p>Tulis konten HTML di sini...</p>\n<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>'}
+                    rows={8}
+                    className="w-full resize-y rounded-lg border border-card-border/30 bg-background px-3 py-2 font-mono text-sm text-foreground placeholder-muted/50 outline-none focus:border-accent/50"
+                />
+            )}
+        </div>
+    );
+}
+
 function getDefaultData(type: BlockType): Record<string, string | string[]> {
     switch (type) {
         case "heading":
@@ -518,6 +572,8 @@ function getDefaultData(type: BlockType): Record<string, string | string[]> {
             return { items: [""], listType: "ul" };
         case "image":
             return { url: "", alt: "" };
+        case "html":
+            return { html: "" };
         default:
             return {};
     }

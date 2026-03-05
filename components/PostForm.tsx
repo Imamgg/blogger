@@ -30,7 +30,6 @@ interface PostFormProps {
 }
 
 const SUGGESTED_CATEGORIES = [
-    "Web Development",
     "Programming",
     "Framework",
     "Database",
@@ -55,6 +54,8 @@ export default function PostForm({
     const [blocks, setBlocks] = useState<ContentBlock[]>(
         initialData?.content ? htmlToBlocks(initialData.content) : []
     );
+    const [rawHtml, setRawHtml] = useState(initialData?.content || "");
+    const [editorMode, setEditorMode] = useState<"blocks" | "html">("blocks");
     const [showPreview, setShowPreview] = useState(false);
     const [autoSlug, setAutoSlug] = useState(!initialData);
 
@@ -66,7 +67,7 @@ export default function PostForm({
     }, [title, autoSlug]);
 
     // Generate HTML from blocks
-    const generatedHtml = blocksToHtml(blocks);
+    const generatedHtml = editorMode === "blocks" ? blocksToHtml(blocks) : rawHtml;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -219,52 +220,89 @@ export default function PostForm({
                     <label className="text-sm font-medium text-foreground">
                         Konten <span className="text-red-400">*</span>
                     </label>
-                    <button
-                        type="button"
-                        onClick={() => setShowPreview(!showPreview)}
-                        className="flex items-center gap-1.5 rounded-lg border border-card-border/50 bg-card-bg px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent/30 hover:text-foreground"
-                    >
-                        {showPreview ? (
-                            <>
-                                <svg
-                                    className="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                    />
-                                </svg>
-                                Editor
-                            </>
-                        ) : (
-                            <>
-                                <svg
-                                    className="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                                    />
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                </svg>
-                                Preview
-                            </>
-                        )}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {/* Editor mode toggle */}
+                        <div className="flex rounded-lg border border-card-border/50 bg-card-bg p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (editorMode === "html") {
+                                        setBlocks(htmlToBlocks(rawHtml));
+                                    }
+                                    setEditorMode("blocks");
+                                    setShowPreview(false);
+                                }}
+                                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${editorMode === "blocks"
+                                        ? "bg-accent/20 text-accent-light"
+                                        : "text-muted hover:text-foreground"
+                                    }`}
+                            >
+                                Blok
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (editorMode === "blocks") {
+                                        setRawHtml(blocksToHtml(blocks));
+                                    }
+                                    setEditorMode("html");
+                                    setShowPreview(false);
+                                }}
+                                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${editorMode === "html"
+                                        ? "bg-accent/20 text-accent-light"
+                                        : "text-muted hover:text-foreground"
+                                    }`}
+                            >
+                                HTML
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowPreview(!showPreview)}
+                            className="flex items-center gap-1.5 rounded-lg border border-card-border/50 bg-card-bg px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent/30 hover:text-foreground"
+                        >
+                            {showPreview ? (
+                                <>
+                                    <svg
+                                        className="h-3.5 w-3.5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                        />
+                                    </svg>
+                                    Editor
+                                </>
+                            ) : (
+                                <>
+                                    <svg
+                                        className="h-3.5 w-3.5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                                        />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                    </svg>
+                                    Preview
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 {showPreview ? (
@@ -280,8 +318,21 @@ export default function PostForm({
                             </p>
                         )}
                     </div>
-                ) : (
+                ) : editorMode === "blocks" ? (
                     <BlockEditor blocks={blocks} onChange={setBlocks} />
+                ) : (
+                    <div className="space-y-2">
+                        <textarea
+                            value={rawHtml}
+                            onChange={(e) => setRawHtml(e.target.value)}
+                            placeholder={'<h2>Judul Bagian</h2>\n<p>Tulis konten HTML di sini...</p>\n<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>'}
+                            rows={12}
+                            className="w-full resize-y rounded-xl border border-card-border/50 bg-card-bg px-4 py-3 font-mono text-sm text-foreground placeholder-muted/50 outline-none transition-colors focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                        />
+                        <p className="text-[10px] text-muted/60">
+                            Tulis HTML langsung. Semua tag HTML akan di-render apa adanya.
+                        </p>
+                    </div>
                 )}
             </div>
 
@@ -294,7 +345,7 @@ export default function PostForm({
                         !title ||
                         !slug ||
                         !excerpt ||
-                        blocks.length === 0 ||
+                        (editorMode === "blocks" ? blocks.length === 0 : !rawHtml.trim()) ||
                         !category
                     }
                     className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-light px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:shadow-xl hover:shadow-accent/30 disabled:cursor-not-allowed disabled:opacity-50"
